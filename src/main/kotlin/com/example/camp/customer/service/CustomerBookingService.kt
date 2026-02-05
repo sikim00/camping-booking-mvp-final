@@ -3,6 +3,7 @@ package com.example.camp.customer.service
 import com.example.camp.application.BookingCodeGenerator
 import com.example.camp.application.QuoteService
 import com.example.camp.application.RefundCalculator
+import com.example.camp.common.AlreadyBookedException
 import com.example.camp.customer.dto.CancelRefundRequest
 import com.example.camp.customer.dto.ConfirmBookingRequest
 import com.example.camp.customer.dto.ConfirmBookingResponse
@@ -42,6 +43,7 @@ class CustomerBookingService(
         siteId: Long,
         checkIn: LocalDate,
         checkOut: LocalDate,
+        headCount: Int = 1,
         provider: String?,
         providerTxId: String?
     ): ConfirmBookingResponse {
@@ -50,6 +52,7 @@ class CustomerBookingService(
 
         val site = siteRepository.findById(siteId).orElseThrow { IllegalArgumentException("site not found") }
         if (!site.isActive || site.campId != campId) throw IllegalStateException("site invalid")
+        require(headCount in 1..site.capacity) { "HEAD_COUNT_EXCEEDS_CAPACITY" }
 
         val quote = quoteService.quote(siteId, checkIn, checkOut)
 
@@ -60,6 +63,7 @@ class CustomerBookingService(
             customerId = customerId,
             campId = campId,
             siteId = siteId,
+            headCount = headCount,
             checkInDate = checkIn,
             checkOutDate = checkOut,
             nightsCount = quote.nights,
@@ -87,9 +91,10 @@ class CustomerBookingService(
                 )
                 d = d.plusDays(1)
             }
+            bookingNightRepository.flush()
         } catch (e: DataIntegrityViolationException) {
             // rollback will remove booking; rethrow as duplicate booking
-            throw IllegalStateException("duplicate booking", e)
+            throw AlreadyBookedException("이미 예약된 날짜가 포함되어 있습니다.")
         }
 
         val payment = Payment(

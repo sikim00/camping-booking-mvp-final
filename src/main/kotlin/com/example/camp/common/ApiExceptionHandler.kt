@@ -19,7 +19,13 @@ class ApiExceptionHandler {
         ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(ApiError("FORBIDDEN", e.message ?: "forbidden"))
 
-    @ExceptionHandler(DataIntegrityViolationException::class)
+    
+    @ExceptionHandler(AlreadyBookedException::class)
+    fun handleAlreadyBooked(e: AlreadyBookedException): ResponseEntity<ApiError> =
+        ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiError("ALREADY_BOOKED", e.message ?: "already booked"))
+
+@ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrity(e: DataIntegrityViolationException): ResponseEntity<ApiError> {
         val msg = e.mostSpecificCause?.message ?: e.message ?: "constraint violation"
         return if (msg.contains("booking_nights") && msg.contains("site_id") && msg.contains("night_date")) {
