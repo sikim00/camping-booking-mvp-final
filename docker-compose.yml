@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: camp
+      POSTGRES_USER: camp
+      POSTGRES_PASSWORD: camp
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/camp
+      SPRING_DATASOURCE_USERNAME: camp
+      SPRING_DATASOURCE_PASSWORD: camp
+      APP_JWT_SECRET: "replace-with-very-long-secret-string-at-least-32-bytes"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  test:
+    image: gradle:8.9-jdk17
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gradle-cache:/home/gradle/.gradle
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+    command: ["bash", "-lc", "chmod +x ./gradlew && ./gradlew --no-daemon test"]
+
+volumes:
+  gradle-cache:
