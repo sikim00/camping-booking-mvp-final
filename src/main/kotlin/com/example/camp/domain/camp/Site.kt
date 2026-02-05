@@ -24,6 +24,9 @@ class Site(
     @Column(nullable = false)
     var currency: String = "KRW",
 
+    @Column(name = "capacity", nullable = false)
+    var capacity: Int = 4,
+
     @Column(name = "is_active", nullable = false)
     var isActive: Boolean = true
 )

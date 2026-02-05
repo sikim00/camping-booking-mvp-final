@@ -7,6 +7,7 @@ data class ConfirmBookingRequest(
     val siteId: Long,
     val checkIn: LocalDate,
     val checkOut: LocalDate,
+    val headCount: Int = 1,
     val provider: String? = null,
     val providerTxId: String? = null
 )

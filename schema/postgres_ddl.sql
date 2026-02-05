@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS sites (
   name VARCHAR(200) NOT NULL,
   base_price NUMERIC(12,2) NOT NULL,
   currency VARCHAR(10) NOT NULL DEFAULT 'KRW',
+  capacity INT NOT NULL DEFAULT 4,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -71,6 +72,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   customer_id BIGINT NOT NULL REFERENCES users(id),
   camp_id BIGINT NOT NULL REFERENCES camps(id),
   site_id BIGINT NOT NULL REFERENCES sites(id),
+  head_count INT NOT NULL DEFAULT 1,
 
   check_in_date DATE NOT NULL,
   check_out_date DATE NOT NULL,

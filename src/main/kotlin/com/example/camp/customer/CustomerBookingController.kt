@@ -20,6 +20,7 @@ class CustomerBookingController(
             siteId = req.siteId,
             checkIn = req.checkIn,
             checkOut = req.checkOut,
+            headCount = req.headCount,
             provider = req.provider,
             providerTxId = req.providerTxId
         )
