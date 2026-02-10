@@ -32,6 +32,9 @@ data class Booking(
     @Column(name = "site_id", nullable = false)
     val siteId: Long,
 
+    @Column(name = "head_count", nullable = false)
+    val headCount: Int = 1,
+
     @Column(name = "check_in_date", nullable = false)
     val checkInDate: LocalDate,
 

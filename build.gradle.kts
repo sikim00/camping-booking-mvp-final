@@ -1,6 +1,11 @@
+import org.gradle.api.tasks.testing.Test
+
 plugins {
+    id("base")
+
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
+
     kotlin("jvm") version "1.9.24"
     kotlin("plugin.spring") version "1.9.24"
     kotlin("plugin.jpa") version "1.9.24"
@@ -35,8 +40,28 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.testcontainers:junit-jupiter:1.20.1")
     testImplementation("org.testcontainers:postgresql:1.20.1")
+
+    // ✅ test(profile=test)에서 H2를 쓰기 위해 필요
+    testRuntimeOnly("com.h2database:h2")
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+
+    // ✅ 기본 test는 무조건 H2(test 프로파일)
+    systemProperty("spring.profiles.active", "test")
+
+    // ✅ Colima + Testcontainers 안정화
+    environment(
+        "DOCKER_HOST",
+        "unix://${System.getProperty("user.home")}/.colima/default/docker.sock"
+    )
+
+    // ✅ Ryuk 마운트 이슈 회피(Colima에서 필수)
+    environment("TESTCONTAINERS_RYUK_DISABLED", "true")
+
+    // ✅ 기본 test에서는 IT 제외 (필요할 때만 별도 실행)
+    filter {
+        excludeTestsMatching("*IT")
+    }
 }

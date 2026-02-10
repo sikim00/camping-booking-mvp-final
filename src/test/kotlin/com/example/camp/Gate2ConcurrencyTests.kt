@@ -46,11 +46,57 @@ class Gate2ConcurrencyTests(
         userRepository.deleteAll()
     }
 
-    
+    private fun seedCampAndSite(): Seed {
+        // 고객 8명 생성 (테스트에서 customerId가 1~8 범위로 사용됨)
+        (1..8).forEach { i ->
+            userRepository.save(
+                User(
+                    email = "user$i@test.com",
+                    passwordHash = "pw",
+                    role = "CUSTOMER"
+                )
+            )
+        }
+
+        val camp = campRepository.save(
+            Camp(
+                name = "캠프A",
+                ownerId = 100L,
+                isActive = true
+            )
+        )
+
+        val site = siteRepository.save(
+            Site(
+                campId = camp.id!!,
+                name = "사이트1",
+                basePrice = 100000.toBigDecimal(),
+                currency = "KRW",
+                capacity = 4,
+                isActive = true
+            )
+        )
+
+        val policy = refundPolicyVersionRepository.save(
+            RefundPolicyVersion(
+                campId = camp.id!!,
+                version = 1,
+                isActive = true,
+                ruleJson = """{"version":1,"rules":[{"daysBefore":7,"refundRate":1.0},{"daysBefore":0,"refundRate":0.0}]}"""
+            )
+        )
+
+        return Seed(
+            campId = camp.id!!,
+            siteId = site.id!!,
+            policyId = policy.id!!
+        )
+    }
+
 
     @Test
     fun `A 동시 예약 - 하나만 성공`() {
-        val seed = seedCampSite()
+        val seed = seedCampAndSite()
         val checkIn = LocalDate.now().plusDays(10)
         val checkOut = LocalDate.now().plusDays(12)
 
@@ -85,7 +131,7 @@ class Gate2ConcurrencyTests(
 
     @Test
     fun `B 중복예약 - 409 대응 예외`() {
-        val seed = seedCampSite()
+        val seed = seedCampAndSite()
         val checkIn = LocalDate.now().plusDays(10)
         val checkOut = LocalDate.now().plusDays(12)
 
